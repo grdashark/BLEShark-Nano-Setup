@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLEShark Setup</title>
+    <style>
+        :root {
+            --background-color-light: #f3f4f6;
+            --background-color-dark: #333 ;
+            --container-bg-light: #fff;
+            --container-bg-dark: #444;
+            --text-color-light: #333;
+            --text-color-dark: #ffffff;
+            --button-bg-light: #007BFF;
+            --button-bg-dark: #0056b3;
+            --blur-bg-light: rgba(255, 255, 255, 0.3);
+            --blur-bg-dark: rgba(0, 0, 0, 0.5);
+            --button-hover-bg-dark: #007BFF;
+            --paragraph-color-light: #666;
+            --paragraph-color-dark: #d2d2d2;
+            --wifissidbg-color-dark: #535353;
+            --wifissidbg-color-light: #eee;
+            --transition-time: 0.5s;
+        }
+        body, .container, h1, p, form, table, td, input, button, .networks, .network, .password-field, .loader, #status-container, #blur-background, #wifi-animation {
+            transition: background var(--transition-time) ease-in-out, color var(--transition-time) ease-in-out, transform var(--transition-time) ease-in-out, opacity var(--transition-time) ease-in-out;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: var(--background-color-light);
+            overflow: hidden;
+            transition: background var(--transition-time) ease-in-out, color var(--transition-time) ease-in-out;
+        }
+        body.dark-mode {
+            background: var(--background-color-dark);
+            color: var(--text-color-dark);
+        }
+        .container {
+            text-align: center;
+            background: var(--container-bg-light);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 350px;
+            width: 100%;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.3s, transform 0.3s, padding-top 0.3s, padding-bottom 0.3s background 0.5s ease-in-out;
+            margin: 0 auto;
+        }
+        body.dark-mode .container td {
+            color: var(--text-color-dark);
+        }
+        body.dark-mode .container {
+            background: var(--container-bg-dark);
+            color: var(--text-color-dark);
+        }
+        .container, h1, p, form, table, td, input, button, .networks, .network, .password-field, .loader, #status-container, #blur-background, #wifi-animation {
+            transition: background 0.5s ease-in-out, color 0.5s ease-in-out, transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+        .container.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .container.with-loader {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .container h1 {
+            color: #333;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        body.dark-mode .container h1 {
+            color: var(--text-color-dark);
+        }
+        .container.visible h1 {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .container p {
+            color: var(--paragraph-color-light);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        body.dark-mode .container p {
+            color: var(--paragraph-color-dark);
+        }
+        .container.visible p {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        form {
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .container.visible form {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 5px;
+        }
+        input[type='text'], input[type='password'] {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: box-shadow var(--transition-time), transform var(--transition-time);
+            transform: scale(0.98);
+        }
+        input[type='text']:focus, input[type='password']:focus {
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            transform: scale(1.00);
+        }
+        input[type='submit'], button {
+            background-color: var(--button-bg-light);
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color var(--transition-time) ease-in-out, transform var(--transition-time);
+            transform: scale(0.98);
+        }
+        body.dark-mode button, body.dark-mode input[type='submit'] {
+            background-color: var(--button-bg-dark);
+        }
+        body.dark-mode button:hover, body.dark-mode input[type='submit']:hover {
+            background-color: var(--button-hover-bg-dark);
+        }
+        input[type='submit']:hover, button:hover {
+            background-color: #0056b3;
+            transform: scale(1.00);
+        }
+        input[type='submit']:active, button:active {
+            transform: scale(1);
+        }
+        .networks {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .networks.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .network {
+            background: var(--wifissidbg-color-light);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s, opacity 0.3s;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        .network.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transform: scale(0.98);
+        }
+        body.dark-mode .network {
+            background: var(--wifissidbg-color-dark);
+            color: var(--text-color-dark);
+            transition: background 0.5s ease-in-out, color 0.5s ease-in-out, transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+        .network:hover {
+            background: #ddd;
+            transform: scale(1.00);
+        }
+        body.dark-mode .network:hover {
+            background: #555; /* Slightly darker shade for hover */
+        }
+        .password-field {
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+        .password-field input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .password-field button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .password-field button:hover {
+            background-color: #0056b3;
+        }
+        .password-field button:active {
+            transform: scale(1);
+        }
+        .loader {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #007BFF;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto 0 auto;
+            display: none;
+            opacity: 0;
+            transition: opacity var(--transition-time) ease-in-out, transform var(--transition-time) ease-in-out;
+            transform: translateY(-20px);
+        }
+        .loader.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .password-field.expanded {
+            display: block;
+            padding-top: 10px;
+        }
+        #status-container {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 350px;
+            width: 100%;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        #status-container.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        /* Blur Background */
+        #blur-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--blur-bg-light);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-time) ease-in-out;
+        }
+
+        #blur-background.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.dark-mode #blur-background {
+            background: var(--blur-bg-dark);
+        }
+
+        /* WiFi Connecting Animation */
+        @keyframes wifiConnecting {
+            0% {
+                opacity: 0.2;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0.2;
+                transform: scale(0.8);
+            }
+        }
+
+        #wifi-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            margin-top: -40px;
+            margin-left: -40px;
+            border-radius: 50%;
+            border: 4px solid #007BFF;
+            animation: wifiConnecting 2s infinite;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
+            z-index: 1001;
+            display: none;
+        }
+
+        #wifi-animation.visible {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1100;
+        }
+        
+        .switch input {
+            display: none;
+        }
+        
+        .slider {
+            width: 50px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 12px;
+            position: relative;
+            transition: background-color 0.5s ease-in-out;
+        }
+        
+        .slider:before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.5s ease-in-out;
+        }
+        .indicator {
+            margin-right:12px;
+            margin-top:1px;
+            position: absolute;
+            right: 10px; /* Adjust as needed */
+            font-weight: bold;
+        }
+        
+        input:checked + .slider {
+            background-color: #007BFF;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        #final-container {
+            display: none;
+        }
+
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2000;
+            display: none;
+        }
+
+        @keyframes confettiAnimation {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container visible" id="login-container">
+        <h1>Welcome to BLEShark!</h1>
+        <p>Login credentials should be visible on your BLEShark's screen.</p>
+        <form name="loginForm" onsubmit="return false;">
+            <table>
+                <tr>
+                    <td>Username:</td>
+                    <td><input type="text" size="25" name="userid"></td>
+                </tr>
+                <tr>
+                    <td>Password:</td>
+                    <td><input type="password" size="25" name="pwd"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" onclick="check(this.form)" value="Login">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <div class="container" id="setup-container" style="display: none;">
+        <h1 id="setup-header">BLEShark WiFi Setup</h1>
+        <p id="setup-description">Press the button below to scan for available WiFi networks.</p>
+        <div class="loader" id="loader"></div>
+        <div class="networks" id="networks"></div>
+        <button onclick="scanNetworks()">Scan Networks</button>
+    </div>
+
+    <div class="container" id="status-container" style="display: none;">
+      <h1 id="status-header"></h1>
+      <p id="status-description"></p>
+    </div>
+
+    <div id="blur-background"></div>
+    <div id="wifi-animation"></div>
+
+    <div class="switch">
+        <input type="checkbox" id="dark-mode-switch">
+        <label for="dark-mode-switch" class="slider"></label>
+    </div>
+
+    <div class="container" id="final-container" style="display: none;">
+        <h1>You're all set!</h1>
+        <p>Press "restart" to restart your BLEShark & apply the changes.</p>
+        <button onclick="transitionScreens('final-container', 'status-container', restartBLEShark);">Restart</button>
+    </div>
+
+    <div id="confetti"></div>
+
+    <script>
+        const encodedUsername = btoa(')rawliteral" + setupUsername + R"L(');
+        const encodedPassword = btoa(')L" + setupPassword + R"rawliteral(');
+
+        document.getElementById('dark-mode-switch').addEventListener('change', function() {
+            if (this.checked) {
+                setTimeout(() => document.body.classList.add('dark-mode'), 10);
+            } else {
+                setTimeout(() => document.body.classList.remove('dark-mode'), 10);
+            }
+        });
+
+        function check(form) {
+            const inputUsername = btoa(form.userid.value);
+            const inputPassword = btoa(form.pwd.value);
+
+            if (inputUsername === encodedUsername && inputPassword === encodedPassword) {
+                transitionScreens('login-container', 'setup-container');
+            } else {
+                alert('Error Password or Username'); // displays error message
+            }
+        }
+
+        function scanNetworks() {
+            const blurBackground = document.getElementById('blur-background');
+            const wifiAnimation = document.getElementById('wifi-animation');
+            blurBackground.classList.add('visible');
+            wifiAnimation.classList.add('visible');
+            setTimeout(() => {
+                fetch('/scan')
+                    .then(response => response.json())
+                    .then(data => {
+                        blurBackground.classList.remove('visible');
+                        wifiAnimation.classList.remove('visible');
+                        transitionScreens('setup-container', 'setup-container');
+                    
+                        document.getElementById('setup-header').textContent = 'Available Networks';
+                        document.getElementById('setup-description').textContent = 'Select a network to connect to it.';
+                        const networksDiv = document.getElementById('networks');
+                        networksDiv.innerHTML = '';
+                        data.networks.forEach((network, index) => {
+                            const div = document.createElement('div');
+                            div.className = 'network';
+                            div.innerHTML = `
+                                <div class="network-header">
+                                    ${network.ssid} (${network.rssi} dBm)
+                                    <span class="indicator">+</span>
+                                </div>
+                            `;
+                            div.onclick = () => togglePasswordField(div, network.ssid);
+                            networksDiv.appendChild(div);
+                            
+                            // Add animation delay for each network item
+                            setTimeout(() => {
+                                div.classList.add('visible');
+                            }, 100 * index);
+                        });
+                        networksDiv.classList.add('visible'); // Make networks div visible
+                    })
+                    .catch(error => {
+                        blurBackground.classList.remove('visible');
+                        wifiAnimation.classList.remove('visible');
+                        console.error('Error:', error);
+                    });
+            }, 1000); // Delay to ensure the blur background transition happens first
+        }
+
+        function restartBLEShark() {
+            displayStatus("Restarting...", "Your BLEShark will restart in 5");
+            let countdown = 5;
+            const countdownInterval = setInterval(() => {
+                countdown -= 1;
+                if (countdown > 0) {
+                    displayStatus("Restarting...", `Your BLEShark will restart in ${countdown}`);
+                } else {
+                    clearInterval(countdownInterval);
+                    displayStatus("Restarting...", "Restarting now...");
+                
+                    // Make the fetch call to restart the device
+                    fetch("/restart")
+                        .then(response => {
+                            if (response.ok) {
+                                console.log("Restart request sent successfully.");
+                            } else {
+                                displayStatus("Error", "Error sending restart request: " + response);
+                                console.error("Error sending restart request.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Fetch error:", error);
+                        });
+                }
+            }, 1000); 
+        }
+        function togglePasswordField(networkDiv, ssid) {
+            let passwordField = networkDiv.querySelector('.password-field');
+            const indicator = networkDiv.querySelector('.indicator');
+            if (!passwordField) {
+                passwordField = document.createElement('div');
+                passwordField.className = 'password-field';
+                passwordField.innerHTML = `
+                    <input type="password" style="height:15px;" placeholder="Enter password for '${ssid}'" />
+                    <button onclick="connectToNetwork('${ssid}', this.previousElementSibling.value)">Connect</button>
+                `;
+                networkDiv.appendChild(passwordField);
+                // Allow for a slight delay to add the 'expanded' class for transition
+                setTimeout(() => {
+                    passwordField.style.display = 'block';
+                    passwordField.classList.add('expanded');
+                    passwordField.style.maxHeight = passwordField.scrollHeight + 'px';
+                    indicator.textContent = '-';
+                }, 10);
+            } else {
+                if (passwordField.classList.contains('expanded')) {
+                    passwordField.style.maxHeight = null;
+                    passwordField.classList.remove('expanded');
+                    setTimeout(() => {
+                        if (!passwordField.classList.contains('expanded')) {
+                            passwordField.style.display = 'none';
+                            indicator.textContent = '+';
+                        }
+                    }, 300);
+                } else {
+                    passwordField.style.display = 'block';
+                    setTimeout(() => {
+                        passwordField.classList.add('expanded');
+                        passwordField.style.maxHeight = passwordField.scrollHeight + 'px';
+                        indicator.textContent = '-';
+                    }, 10);
+                }
+            }
+        
+            // Add event listeners to stop propagation for all interactive elements
+            const inputs = passwordField.querySelectorAll('input, button, label');
+            inputs.forEach(input => {
+                input.addEventListener('click', (event) => event.stopPropagation());
+            });
+        }
+        function connectToNetwork(ssid, password) {
+            const blurBackground = document.getElementById('blur-background');
+            const wifiAnimation = document.getElementById('wifi-animation');
+            blurBackground.classList.add('visible');
+            wifiAnimation.classList.add('visible');
+
+            setTimeout(() => {
+                fetch('/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ssid, password }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    blurBackground.classList.remove('visible');
+                    wifiAnimation.classList.remove('visible');
+                    if (data.status == "ok") {
+                        displayStatus('Connection Successful', `Connected to ${ssid}`, true);
+                    } else {
+                        displayStatus('Connection Failed', `Failed to connect to ${ssid}`, false);
+                    }
+                })
+                .catch(error => {
+                    blurBackground.classList.remove('visible');
+                    wifiAnimation.classList.remove('visible');
+                    console.error('Error:', error);
+                    displayStatus('Connection Failed', 'Failed to connect. Reload the page and try again.', false);
+                });
+            }, 600); // Delay to ensure the blur background transition happens first
+        }
+
+        function transitionScreens(fromId, toId, callback) {
+            const fromScreen = document.getElementById(fromId);
+            const toScreen = document.getElementById(toId);
+            fromScreen.classList.remove('visible');
+            setTimeout(() => {
+                fromScreen.style.display = 'none';
+                toScreen.style.display = 'block';
+                setTimeout(() => {
+                    toScreen.classList.add('visible');
+                    if (callback) callback(); // Call the callback function if provided
+                }, 10); // Delay to ensure CSS transition
+            }, 300);
+        }
+
+
+        function showConfetti() {
+            const confettiDiv = document.getElementById('confetti');
+            confettiDiv.style.display = 'block';
+            for (let i = 0; i < 100; i++) {
+                let confetti = document.createElement('div');
+                let isCircle = Math.random() > 0.5; // 50% chance to be a circle
+                let size = Math.random() * 10 + 5; // Random size between 5px and 15px
+        
+                confetti.style.width = isCircle ? `${size}px` : `${size * 1.5}px`; // Circles and rectangles have different widths
+                confetti.style.height = `${size}px`;
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.position = 'absolute';
+                confetti.style.top = `${Math.random() * -20}vh`; // Start slightly above the viewport
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.opacity = 0.7;
+                confetti.style.borderRadius = isCircle ? '50%' : '0%'; // Circles have a border radius of 50%
+                confetti.style.animation = `confettiAnimation 3s ease-in-out forwards ${Math.random() * 2}s`;
+                confettiDiv.appendChild(confetti);
+            }
+            setTimeout(() => {
+                confettiDiv.style.display = 'none';
+                confettiDiv.innerHTML = ''; // Clear the confetti
+            }, 5000); // Increased duration to 5 seconds to ensure visibility
+        }
+
+
+        function displayStatus(header, description, success) {
+            const statusContainer = document.getElementById('status-container');
+            document.getElementById('status-header').textContent = header;
+            document.getElementById('status-description').textContent = description;
+
+            // Clear any existing buttons
+            statusContainer.querySelectorAll('button').forEach(button => button.remove());
+
+            if (success) {
+                const continueButton = document.createElement('button');
+                continueButton.textContent = "Continue";
+                continueButton.onclick = () => transitionScreens('status-container', 'final-container', showConfetti);
+                statusContainer.appendChild(continueButton);
+            } else {
+                const rescanButton = document.createElement('button');
+                rescanButton.textContent = "Re-scan";
+                rescanButton.onclick = () => {
+                    transitionScreens('status-container', 'setup-container');
+                    rescanButton.remove();
+                };
+                statusContainer.appendChild(rescanButton);
+            }
+
+            transitionScreens('setup-container', 'status-container');
+        }
+    </script>
+</body>
+</html>
